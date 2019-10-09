@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t bcmehrman/multi-react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true bcmehrman/multi-react-test npm test -- --coverage
+
+after_success:
+ - docker build -t bcmehrman/multi-client ./client
+ - docker build -t bcmehrman/multi-nginx ./nginx
+ - docker build -t bcmehrman/multi-server ./server
+ - docker build -t bcmehrman/multi-worker ./worker
+ - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+ - docker push bcmehrman/multi-client
+ - docker push bcmehrman/multi-nginx
+ - docker push bcmehrman/multi-server
+ - docker push bcmehrman/multi-worker
